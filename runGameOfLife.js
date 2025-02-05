@@ -4,8 +4,19 @@ const run = async () => {
   const wasm = await wasmLoader();
   console.log('Wasm version:', wasm.wasmVersion());
 
-  // Example from Leetcode.
-  const jsMatrix = [[0,1,0],[0,0,1],[1,1,1],[0,0,0]];
+  // 10 x 10 grid of dead and alive cells
+  const jsMatrix = [
+    [0, 1, 0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ];
 
   const vectorVectorInt = new wasm.VectorVectorInt();
   for (let row of jsMatrix) {
@@ -25,15 +36,34 @@ const run = async () => {
     }
   };
 
-  console.log("\nInput:");
+  console.log("\nSeed Input:");
   print(vectorVectorInt);
+  console.log("\nPress Ctrl+C to stop");
 
-  wasm.gameOfLife(vectorVectorInt);
+  let i = 0;
+  const updateDisplay = setInterval(() => {
+    console.clear();
+    process.stdout.write(`Step ${i}:\n\n`);
 
-  console.log("\nOutput:");
-  print(vectorVectorInt);
+    wasm.gameOfLife(vectorVectorInt);
 
+    for (let i = 0; i < vectorVectorInt.size(); i++) {
+      const row = vectorVectorInt.get(i);
+      let v = [];
+      for (let j = 0; j < row.size(); j++) {
+        v.push(row.get(j));
+      }
+      process.stdout.write(v.join("") + "\n");
+    }
 
+    i++;
+  }, 500); // Updates every 500ms
+
+  // To stop the interval and clean up resources
+  process.on('SIGINT', () => {
+    clearInterval(updateDisplay);
+    console.log("\nSimulation stopped");
+  });
 };
 
 run();
