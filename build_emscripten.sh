@@ -41,6 +41,20 @@ const run = async () => {
 run();
 EOF
 
+# web build for react
+# (cd wasm; emcc demo.cc -o demo.js -lembind --no-entry -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap", "malloc", "free"]' -s MODULARIZE=1 -s EXPORT_NAME=DemoWasmModule -s ENVIRONMENT=web)
+# (cd wasm;
+#  emcc \
+#    demo.cc \
+#    -o demo.js \
+#    -lembind \
+#    --no-entry \
+#    -s MODULARIZE=1 \
+#    -s EXPORTED_FUNCTIONS=_malloc,_free \
+#    -s EXPORTED_RUNTIME_METHODS=ccall,cwrap \
+#    -s ENVIRONMENT=web \
+#    -s EXPORT_NAME=DemoWasmModule)
+# regular build for node
 (cd wasm; emcc demo.cc -o demo.js -lembind --no-entry -s MODULARIZE=1 -s EXPORT_NAME=DemoWasmModule)
 
 tar cf - wasm/*

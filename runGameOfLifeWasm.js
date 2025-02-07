@@ -36,34 +36,17 @@ const run = async () => {
     }
   };
 
-  console.log("\nSeed Input:");
+  console.time("WASM Game of Life");
+  console.log("\nInput:");
   print(vectorVectorInt);
-  console.log("\nPress Ctrl+C to stop");
 
-  let i = 0;
-  const updateDisplay = setInterval(() => {
-    console.clear();
-    process.stdout.write(`Step ${i}:\n\n`);
-
+  for (let i = 0; i < 10; i++) {
     wasm.gameOfLife(vectorVectorInt);
+  }
 
-    for (let i = 0; i < vectorVectorInt.size(); i++) {
-      const row = vectorVectorInt.get(i);
-      let v = [];
-      for (let j = 0; j < row.size(); j++) {
-        v.push(row.get(j));
-      }
-      process.stdout.write(v.join("") + "\n");
-    }
-
-    i++;
-  }, 500); // Updates every 500ms
-
-  // To stop the interval and clean up resources
-  process.on('SIGINT', () => {
-    clearInterval(updateDisplay);
-    console.log("\nSimulation stopped");
-  });
+  console.log("\nOutput:");
+  print(vectorVectorInt);
+  console.timeEnd("WASM Game of Life");
 };
 
 run();

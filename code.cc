@@ -60,6 +60,62 @@ void gameOfLife(vector<vector<int>>& board) {
   }
 }
 
+void gameOfLifeLoop(vector<vector<int>>& board, int iterations) {
+    for (int i = 0; i < iterations; ++i) {
+        gameOfLife(board);
+    }
+}
+
+void gameOfLifeFlat(int* board, int rows, int cols) {
+    std::vector<int> newBoard(rows * cols, 0);
+
+    constexpr int Z = 0, P = 1, N = -1;
+    struct DIJ { int di, dj; };
+    static constexpr DIJ dij[] = {
+        { P, Z }, { P, P }, { Z, P }, { N, P },
+        { N, Z }, { N, N }, { Z, N }, { P, N }
+    };
+
+    // Step 1: Compute neighbor counts
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            int idx = i * cols + j; // Flattened index
+            if (board[idx] & 1) {
+                for (auto [di, dj] : dij) {
+                    int ni = i + di, nj = j + dj;
+                    if (ni >= 0 && ni < rows && nj >= 0 && nj < cols) {
+                        newBoard[ni * cols + nj] += 2;
+                    }
+                }
+            }
+        }
+    }
+
+    // Step 2: Apply game rules
+    for (int i = 0; i < rows * cols; ++i) {
+        if (newBoard[i] == 6) {
+            board[i] = 1;  // Birth condition (three neighbors)
+        } else if (board[i] & 1) {
+            board[i] = (newBoard[i] >= 4 && newBoard[i] < 8) ? 1 : 0;  // Keep living
+        } else {
+            board[i] = 0;  // Cell dies
+        }
+    }
+}
+
+void gameOfLifeFlatLoop(int* board, int rows, int cols, int iterations) {
+    for (int i = 0; i < iterations; ++i) {
+        gameOfLifeFlat(board, rows, cols);
+    }
+}
+
+void modifyArray(intptr_t p0, int n) {
+  auto p = reinterpret_cast<int*>(p0);
+  for (int i = 0; i < n; i++) {
+    ++p[i];
+  }
+}
+
 EMSCRIPTEN_BINDINGS(my_module) {
   function("wasmVersion", &wasmVersion);
   function("demoAdd", &demoAdd);
@@ -67,4 +123,8 @@ EMSCRIPTEN_BINDINGS(my_module) {
   register_vector<int>("VectorInt");
   register_vector<std::vector<int>>("VectorVectorInt");
   function("gameOfLife", &gameOfLife);
+  function("gameOfLifeLoop", &gameOfLifeLoop);
+  function("gameOfLifeFlat", &gameOfLifeFlat, allow_raw_pointers());
+  function("gameOfLifeFlatLoop", &gameOfLifeFlatLoop, allow_raw_pointers());
+  function("modifyArray", &modifyArray);
 }
