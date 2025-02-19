@@ -116,6 +116,39 @@ void modifyArray(intptr_t p0, int n) {
   }
 }
 
+extern "C" {
+  void optimizedGameOfLife(intptr_t p0, int size) {
+    auto board = reinterpret_cast<int*>(p0);
+    int newBoard[size * size];
+
+    for (int row = 0; row < size; row++) {
+      for (int col = 0; col < size; col++) {
+        int index = row * size + col;
+        int liveNeighbors = 0;
+
+        for (int dr = -1; dr <= 1; dr++) {
+          for (int dc = -1; dc <= 1; dc++) {
+            if (dr == 0 && dc == 0) continue;
+            int r = row + dr;
+            int c = col + dc;
+            if (r >= 0 && r < size && c >= 0 && c < size) {
+              liveNeighbors += board[r * size + c];
+            }
+          }
+        }
+        if (board[index] == 1) {
+          newBoard[index] = (liveNeighbors == 2 || liveNeighbors == 3) ? 1 : 0;
+        } else {
+          newBoard[index] = (liveNeighbors == 3) ? 1 : 0;
+        }
+      }
+    }
+    for (int i = 0; i < size * size; i++) {
+      board[i] = newBoard[i];
+    }
+  }
+}
+
 EMSCRIPTEN_BINDINGS(my_module) {
   function("wasmVersion", &wasmVersion);
   function("demoAdd", &demoAdd);
@@ -127,4 +160,5 @@ EMSCRIPTEN_BINDINGS(my_module) {
   function("gameOfLifeFlat", &gameOfLifeFlat, allow_raw_pointers());
   function("gameOfLifeFlatLoop", &gameOfLifeFlatLoop, allow_raw_pointers());
   function("modifyArray", &modifyArray);
+  function("optimizedGameOfLife", &optimizedGameOfLife, allow_raw_pointers());
 }
